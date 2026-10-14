@@ -1,0 +1,5 @@
+cmake==4.4.3
+numpy==2.4.2
+onnx==1.23.0
+onnxruntime==1.31.0
+qdk==1.33.1
