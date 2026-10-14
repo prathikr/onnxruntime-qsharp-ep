@@ -16,10 +16,9 @@ The same unmodified standard-operator model runs with CPU only or with Q# `MatMu
 ## Pinned ONNX Runtime
 
 - Release: `v1.31.0`
-- Commit: `402979ac1bef89dcd55add41eaa7277c407599eb`
-- EP C API version: `31`
+- Minimum EP C API version: `31`
 
-CMake rejects a different local checkout or API version so that ABI drift fails during configuration instead of at runtime.
+CMake accepts ONNX Runtime `1.31.0` or newer and requires EP C API version `31` or newer. The known-good build used commit `402979ac1bef89dcd55add41eaa7277c407599eb`, but that commit is recorded for reproducibility rather than enforced.
 
 ## Build and test on macOS
 

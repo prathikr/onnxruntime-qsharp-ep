@@ -50,14 +50,16 @@ def run_quantum(
         if len(devices) != 1:
             raise RuntimeError(f"Expected one QSharp EP device, found {len(devices)}")
 
-        options = ort.SessionOptions()
-        options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_DISABLE_ALL
-        options.add_provider_for_devices(devices, {})
-        session = ort.InferenceSession(str(model), sess_options=options)
-        outputs = session.run(None, {"X": features})
-        del session
-        del options
-        return outputs
+        def execute() -> tuple[np.ndarray, np.ndarray]:
+            options = ort.SessionOptions()
+            options.graph_optimization_level = (
+                ort.GraphOptimizationLevel.ORT_DISABLE_ALL
+            )
+            options.add_provider_for_devices(devices, {})
+            session = ort.InferenceSession(str(model), sess_options=options)
+            return session.run(None, {"X": features})
+
+        return execute()
     finally:
         ort.unregister_execution_provider_library(registration_name)
 

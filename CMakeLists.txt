@@ -29,28 +29,37 @@ endif()
 
 file(STRINGS "${ONNXRUNTIME_C_API_HEADER}" ORT_API_VERSION_LINE
      REGEX "^#define ORT_API_VERSION [0-9]+$")
-if(NOT ORT_API_VERSION_LINE MATCHES "^#define ORT_API_VERSION ${QSHARP_EP_ORT_API_VERSION}$")
+if(NOT ORT_API_VERSION_LINE MATCHES "^#define ORT_API_VERSION ([0-9]+)$")
   message(FATAL_ERROR
-          "Expected ONNX Runtime API version ${QSHARP_EP_ORT_API_VERSION}, "
-          "but ${ONNXRUNTIME_C_API_HEADER} contains '${ORT_API_VERSION_LINE}'")
+          "Unable to determine the ONNX Runtime API version from "
+          "${ONNXRUNTIME_C_API_HEADER}")
+endif()
+set(ONNXRUNTIME_API_VERSION "${CMAKE_MATCH_1}")
+if(ONNXRUNTIME_API_VERSION LESS QSHARP_EP_ORT_MIN_API_VERSION)
+  message(FATAL_ERROR
+          "Unsupported ONNX Runtime API version ${ONNXRUNTIME_API_VERSION}. "
+          "Expected >= ${QSHARP_EP_ORT_MIN_API_VERSION}.")
 endif()
 
-find_package(Git QUIET)
-if(Git_FOUND AND EXISTS "${ONNXRUNTIME_ROOT}/.git")
-  execute_process(
-    COMMAND "${GIT_EXECUTABLE}" -C "${ONNXRUNTIME_ROOT}" rev-parse HEAD
-    OUTPUT_VARIABLE ONNXRUNTIME_ACTUAL_COMMIT
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    RESULT_VARIABLE ONNXRUNTIME_GIT_RESULT)
-  if(NOT ONNXRUNTIME_GIT_RESULT EQUAL 0)
-    message(FATAL_ERROR "Unable to determine the ONNX Runtime commit")
-  endif()
-  if(NOT ONNXRUNTIME_ACTUAL_COMMIT STREQUAL QSHARP_EP_ORT_GIT_COMMIT)
-    message(FATAL_ERROR
-            "ONNX Runtime commit mismatch. Expected ${QSHARP_EP_ORT_GIT_COMMIT}, "
-            "found ${ONNXRUNTIME_ACTUAL_COMMIT}")
-  endif()
+set(ONNXRUNTIME_VERSION "" CACHE STRING
+    "ONNX Runtime version when VERSION_NUMBER is unavailable")
+if(ONNXRUNTIME_VERSION STREQUAL "" AND EXISTS "${ONNXRUNTIME_ROOT}/VERSION_NUMBER")
+  file(STRINGS "${ONNXRUNTIME_ROOT}/VERSION_NUMBER" ONNXRUNTIME_VERSION LIMIT_COUNT 1)
 endif()
+if(ONNXRUNTIME_VERSION STREQUAL "")
+  message(FATAL_ERROR
+          "Unable to determine the ONNX Runtime version. "
+          "Set ONNXRUNTIME_VERSION to a compatible 1.31.x release.")
+endif()
+if(ONNXRUNTIME_VERSION VERSION_LESS QSHARP_EP_ORT_MIN_VERSION)
+  message(FATAL_ERROR
+          "Unsupported ONNX Runtime version ${ONNXRUNTIME_VERSION}. "
+          "Expected >= ${QSHARP_EP_ORT_MIN_VERSION}.")
+endif()
+
+message(STATUS
+        "Using ONNX Runtime ${ONNXRUNTIME_VERSION} with EP API "
+        "${ONNXRUNTIME_API_VERSION}")
 
 add_library(onnxruntime_qsharp_ep SHARED
   src/ep_entry.cc
