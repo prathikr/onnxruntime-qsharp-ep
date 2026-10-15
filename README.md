@@ -6,12 +6,12 @@ The current prototype provides:
 
 - `QSharpExecutionProvider` registration
 - `QSharpSimulator` device discovery
-- standard ONNX `MatMul` implemented with the local Q# sparse-state simulator
+- standard ONNX `MatMul` and constrained 1x1 `Conv` implemented with the local Q# sparse-state simulator
 - CPU fallback for standard `Add`, `Sigmoid`, `Sub`, `Concat`, `Greater`, and `Cast`
 - CPU differential correctness testing
 - clean plugin unload
 
-The same unmodified standard-operator model runs with CPU only or with Q# `MatMul` plus CPU fallback.
+The same unmodified standard-operator model runs with CPU only or with Q# kernels plus CPU fallback.
 
 ## Pinned ONNX Runtime
 
@@ -68,6 +68,19 @@ Run the manual Python example with:
 ```bash
 ../.venv/bin/python examples/logistic_regression.py
 ```
+
+Run the hybrid cat classifier with:
+
+```bash
+../.venv/bin/python examples/cat_classifier.py
+```
+
+The persisted ResNet-18 model contains both the CPU convolutional backbone and
+the binary `1x1 Conv + Flatten + Add + Sigmoid` classifier. The Q# simulator
+executes the standard `Conv` over the pooled `[N,512,1,1]` tensor, while CPU
+fallback handles the remaining nodes. Its bundled cat and dog images
+demonstrate the complete preprocessing, feature-extraction, CPU-reference, and
+quantum-classification flow.
 
 The current prototype starts a Python/Q# simulator worker for each inference call. A persistent worker or native QIR bridge is required before performance testing.
 

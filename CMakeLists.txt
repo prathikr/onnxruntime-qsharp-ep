@@ -63,7 +63,9 @@ message(STATUS
 
 add_library(onnxruntime_qsharp_ep SHARED
   src/ep_entry.cc
+  src/quantum_conv.cc
   src/quantum_matmul.cc
+  src/quantum_simulator.cc
   src/quantum_ep.cc
   src/quantum_ep_factory.cc)
 
